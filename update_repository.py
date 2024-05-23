@@ -1,5 +1,5 @@
 '''
-    Aggiorna tutti i repository facendo git pull del branch indicato e ricompilando il progetto.
+    Aggiorna tutti i repository facendo git pull del branch indicato e ricompilando il progetto con mvn install.
     I comandi eseguiti sono:
     - git stash (in caso ci siano delle modifiche locali)
     - git checkout <branch>
@@ -65,7 +65,7 @@ def mvn_command(abs_repo_path, repo_dir):
             
         # print on console and file
         for line in cmd.stdout:
-            print(line.decode("utf-8"), end='')
+            print(line.decode("utf-8").replace("BUILD SUCCESS", colors["green"] + "BUILD SUCCESS" + colors["end"]).replace("BUILD FAILURE", colors["red"] + "BUILD FAILURE" + colors["end"]), end='')
             output_file.write(line)
             
         cmd.wait()
@@ -73,7 +73,7 @@ def mvn_command(abs_repo_path, repo_dir):
     return cmd.returncode    
     
 
-def main():
+def main(args):
     # calc repositories to scan, git / mvn and exclude blacklisted
     git_repositories = OrderedDict({ repo: branch for repo, branch in repositories.items() if repo not in blacklist })
     mvn_repositories = [ repo for repo, branch in git_repositories.items() if repo not in mvn_exclusions ]
@@ -200,28 +200,32 @@ def main():
     
 
 def parse_args():
-    parser = argparse.ArgumentParser(prog='Repository update', description='Repository update')
-    parser.add_argument('-t', '--test')
-    # args = 
+    parser = argparse.ArgumentParser(prog='Repository update', description='Aggiorna tutti i repository facendo git pull del branch indicato e ricompilando il progetto con mvn install')
+    parser.add_argument('-t', '--test', action="store_true", help="Run maven tests during mvn install (default false)")
+    parser.add_argument('-g', '--git-only', action="store_true", help="Only execute git pull step (on repositories in config or in --git arg)")
+    parser.add_argument('-m', '--mvn-only', action="store_true", help="Only execute mvn install step (on repositories in config or in --mvn arg)")
+    parser.add_argument('-s', '--silent', action="store_true", help="Suppress output print (default false)")
+    parser.add_argument('--git', type=str, metavar="<repository list> (ex: resevo-parent-lib,resevo-apigw-service)", help="List repositories to git pull only (overrides configuration file)")
+    parser.add_argument('--mvn', type=str, metavar="<repository list> (ex: resevo-parent-lib,resevo-apigw-service)", help="List repositories to mvn install only (overrides configuration file)")
+    parser.add_argument('--only', type=str, metavar="<repository list> (ex: resevo-parent-lib,resevo-apigw-service)", help="List repositories to git pull + mvn install (overrides configuration file)")
+    
+    return parser.parse_args()
     
 
 # MAIN
 if __name__ == "__main__":
-    
-    
+
     # parse args
+    args = parse_args()
     
     # check dirs (log, repository, ...)
     check_dir()
     
-    main()
+    main(args)
     
 
 # TODO: 
-# quanto ci mettono le singole fasi (da mostrare alla fine) + il totale
-# -> da testare sti 2
 
 # report finale deve dire (per ciascun projetto): se ha stashato, se hai pullato roba nuova oppure no, se la mvn install è andata o no
-# quando stampi mvn step, colorare build success o build failure
 
-# parse args
+# testare creazione dir log se manca
