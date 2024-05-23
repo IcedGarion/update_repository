@@ -7,10 +7,8 @@
     - mvn clean install -DskipTests
     
     Configurazione:
-    repos_branch: elenco dei repository da aggiornare, con relativo branch di cui fare pull
-    repos_order: indica l'ordine con cui fare la build (prima le librerie, prima le dipendenze)
+    repositories: elenco dei repository da aggiornare, con relativo branch di cui fare pull
     repo_main_dir: la directory contenente tutti i repository
-    (resevo-project viene ignorato perche' non compare nella lista)
     
     Esecuzione:
     python update_repository.py. 
@@ -22,10 +20,23 @@
 import os, time, argparse, subprocess
 from config import *
 
+
 # Globals
 log_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "log")
 
+
 # Functions
+def check_dir():
+    # main repo directory
+    if(not os.path.isdir(repo_main_dir)):
+        print("ERROR: missing main directory: {}".format(os.path.join(os.getcwd(), repo_main_dir)))
+        exit(1)
+        
+    # log directory
+    if(not os.path.isdir(log_dir)):
+        os.makedirs(log_dir)
+
+
 def git_command(abs_repo_path, branch, repo_dir):
     # Open log file
     with open(os.path.join(log_dir, "git-{}.log".format(repo_dir)), 'wb') as output_file:
@@ -63,32 +74,29 @@ def mvn_command(abs_repo_path, repo_dir):
     
 
 def main():
+    # calc repositories to scan, git / mvn and exclude blacklisted
+    git_repositories = OrderedDict({ repo: branch for repo, branch in repositories.items() if repo not in blacklist })
+    mvn_repositories = [ repo for repo, branch in git_repositories.items() if repo not in mvn_exclusions ]
     
-    # For logging
+    # Vars for logging
     width = width = os.get_terminal_size().columns
     colors = {"red": '\033[91m', "yellow": '\033[93m', "green": '\033[92m', "end": '\033[0m'}
     error_report = []
     times = dict()
     git_count = 0
-    git_total = len(repos_branch)
+    git_total = len(git_repositories)
     mvn_count = 0
-    mvn_total = len(repos_order)
+    mvn_total = len(mvn_repositories)
     cmd_output = "/tmp/cmd_output.txt"
     
     
-    # Init
+    # Start
     times.update({ "start": time.time() })
     times.update({"git": dict(), "mvn": dict()})
-    
-    
-    # Check main directory
-    if(not os.path.isdir(os.path.join(os.getcwd(), repo_main_dir))):
-        print("ERROR: missing main directory: {}".format(os.path.join(os.getcwd(), repo_main_dir)))
-        exit(1)
-    
+     
     # Git pull
     print(colors["red"] + "="*int(width-15) + " GIT PULL STEP" + colors["end"])
-    for repo_dir, branch in repos_branch.items():
+    for repo_dir, branch in git_repositories.items():
         git_count += 1
         width = width = os.get_terminal_size().columns
         abs_repo_path = os.path.join(repo_main_dir, repo_dir)
@@ -128,10 +136,11 @@ def main():
         times["git"][repo_dir].update({"start": git_start})
         times["git"][repo_dir].update({"end": git_end})
         
+    git_end = time.time()
     
     # Mvn install
     print(colors["red"] + "="*int(width-18) + " MVN INSTALL STEP"+ colors["end"])
-    for repo_dir in repos_order:
+    for repo_dir in mvn_repositories:
         mvn_count += 1
         width = width = os.get_terminal_size().columns
         abs_repo_path = os.path.join(repo_main_dir, repo_dir)
@@ -169,6 +178,7 @@ def main():
 
 
     # END
+    mvn_end = time.time()
     times.update({ "end": time.time() })
     
     # Error report
@@ -181,12 +191,12 @@ def main():
         
     # Execution time report
     print("Execution time:")
-    print("Total: {:.3} seconds. git: {:.3}, mvn: {:.3}".format(times["end"] - times["start"], git_end - times["start"], mvn_end - git_end))
-    for repo_dir, branch in repos_branch.items():
+    print("Total: {:.3} seconds. git: {:.3} seconds, mvn: {:.3} seconds".format(times["end"] - times["start"], git_end - times["start"], mvn_end - git_end))
+    for repo_dir, branch in git_repositories.items():
         print("{}: git step: {:.3} seconds".format(repo_dir, times["git"][repo_dir]["end"] - times["git"][repo_dir]["start"]))
         
-        if(repo_dir in repos_order):
-            print(" "*len(repo_dir) + ": mvn step: {:.3} seconds".format(repo_dir, times["mvn"][repo_dir]["end"] - times["mvn"][repo_dir]["start"]))
+        if(repo_dir in mvn_repositories):
+            print(" "*len(repo_dir) + "  mvn step: {:.3} seconds".format(times["mvn"][repo_dir]["end"] - times["mvn"][repo_dir]["start"]))
     
 
 def parse_args():
@@ -202,13 +212,16 @@ if __name__ == "__main__":
     # parse args
     
     # check dirs (log, repository, ...)
+    check_dir()
     
     main()
     
 
 # TODO: 
 # quanto ci mettono le singole fasi (da mostrare alla fine) + il totale
-# per ciascun elemento della fase, sul suo nome '------' dire anche quanti ne mancano (1 / 10, 2 / 10, ...)
 # -> da testare sti 2
 
 # report finale deve dire (per ciascun projetto): se ha stashato, se hai pullato roba nuova oppure no, se la mvn install è andata o no
+# quando stampi mvn step, colorare build success o build failure
+
+# parse args
