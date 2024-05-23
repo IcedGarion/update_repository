@@ -19,6 +19,49 @@
     per git, serve essere autenticati ai repository (tramite ssh) altrimenti per ogni repository viene richiesta l'autenticazione manuale
 '''
 
+import os, time, argparse, subprocess
+from config import *
+
+# Globals
+log_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "log")
+
+# Functions
+def git_command(abs_repo_path, branch, repo_dir):
+    # Open log file
+    with open(os.path.join(log_dir, "git-{}.log".format(repo_dir)), 'wb') as output_file:
+        
+        # Exec command
+        cmd = subprocess.Popen("cd " + abs_repo_path + " && git stash && git checkout " + branch + " && git pull --rebase origin " + branch, \
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+            
+        # print on console and file
+        for line in cmd.stdout:
+            print(line.decode("utf-8"), end='')
+            output_file.write(line)
+            
+        cmd.wait()
+    
+    return cmd.returncode    
+    
+
+def mvn_command(abs_repo_path, repo_dir):
+    # Open log file
+    with open(os.path.join(log_dir, "mvn-{}.log".format(repo_dir)), 'wb') as output_file:
+        
+        # Exec command
+        cmd = subprocess.Popen("cd " + abs_repo_path + " && mvn clean install -DskipTests", \
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+            
+        # print on console and file
+        for line in cmd.stdout:
+            print(line.decode("utf-8"), end='')
+            output_file.write(line)
+            
+        cmd.wait()
+
+    return cmd.returncode    
+    
+
 def main():
     
     # For logging
@@ -70,10 +113,11 @@ def main():
         print("> cd {}, git stash && git checkout {} && git pull --rebase origin {}".format(abs_repo_path, branch, branch))
         
         # EXEC COMMAND
-        exit_code = os.system("cd " + abs_repo_path + " && git stash && git checkout " + branch + " && git pull --rebase origin " + branch + ' > "' + os.getcwd() + cmd_output + '"')
+        exit_code = git_command(abs_repo_path, branch, repo_dir)
         
-        # Read output
-        output = open(os.getcwd() + cmd_output)
+        # error git pull
+        if(exit_code != 0):
+            error_report.append("{}: git step error ({})".format(repo_dir, "cd " + abs_repo_path + " && git stash && git checkout " + branch + " && git pull --rebase origin " + branch))
         
         # error git pull
         if(exit_code != 0):
@@ -111,14 +155,12 @@ def main():
         print("> cd {}, mvn clean install -DskipTests".format(abs_repo_path))
         
         # EXEC COMMAND
-        exit_code = os.system("cd " + abs_repo_path + " && mvn clean install -DskipTests" + ' > "' + os.getcwd() + cmd_output + '"')
-        
-        # Read output
-        output = open(os.getcwd() + cmd_output)
+        exit_code = mvn_command(abs_repo_path, repo_dir)
         
         # error mvn install
         if(exit_code != 0):
             error_report.append("{}: mvn install step error".format(repo_dir))
+       
             
         # execution time calc
         mvn_end = time.time()
@@ -139,9 +181,12 @@ def main():
         
     # Execution time report
     print("Execution time:")
-    print("Total: {:.3} seconds. git: {:.3}, mvn: {:.3}".format(times["end"] - times["start"], git_end - start, mvn_end - git_end))
+    print("Total: {:.3} seconds. git: {:.3}, mvn: {:.3}".format(times["end"] - times["start"], git_end - times["start"], mvn_end - git_end))
     for repo_dir, branch in repos_branch.items():
-        print("{}: git step: {:.3} seconds, mvn step: {:.3} seconds".format(repo_dir, times["git"][repo_dir]["end"] - times["git"][repo_dir]["start"],  times["mvn"][repo_dir]["end"] - times["mvn"][repo_dir]["start"]))
+        print("{}: git step: {:.3} seconds".format(repo_dir, times["git"][repo_dir]["end"] - times["git"][repo_dir]["start"]))
+        
+        if(repo_dir in repos_order):
+            print(" "*len(repo_dir) + ": mvn step: {:.3} seconds".format(repo_dir, times["mvn"][repo_dir]["end"] - times["mvn"][repo_dir]["start"]))
     
 
 def parse_args():
@@ -152,9 +197,11 @@ def parse_args():
 
 # MAIN
 if __name__ == "__main__":
-    import os, time
-    from config import *
-    import argparse
+    
+    
+    # parse args
+    
+    # check dirs (log, repository, ...)
     
     main()
     
