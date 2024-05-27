@@ -91,15 +91,7 @@ def mvn_command(abs_repo_path, repo_dir):
     return cmd.returncode    
     
 
-
-def main():
-    
-    
-    
-    # Start
-    Configuration.times.update({ "start": time.time() })
-    Configuration.times.update({ "git": dict(), "mvn": dict() })
-     
+def git_step():
     # Git pull
     git_count = 0
     git_total = len(Configuration.git_repositories)
@@ -145,12 +137,15 @@ def main():
         Configuration.times["git"][repo_dir].update({"start": git_start})
         Configuration.times["git"][repo_dir].update({"end": git_end})
         
-    git_end = time.time()
-    
+    Configuration.times.update({ "git_end": time.time() })
+
+
+def mvn_step():
     # Mvn install
     mvn_count = 0
     mvn_total = len(Configuration.mvn_repositories)
     width = os.get_terminal_size().columns
+    Configuration.times.update({ "mvn_start": time.time() })
     
     print(Configuration.colors["red"] + "="*int(width-18) + " MVN INSTALL STEP"+ Configuration.colors["end"])
     for repo_dir in Configuration.mvn_repositories:
@@ -188,13 +183,11 @@ def main():
         mvn_end = time.time()
         Configuration.times["mvn"][repo_dir].update({"start": mvn_start})
         Configuration.times["mvn"][repo_dir].update({"end": mvn_end})
+        
+    Configuration.times.update({ "mvn_end": time.time() })
 
 
-    # END
-    mvn_end = time.time()
-    Configuration.times.update({ "end": time.time() })
-    
-    # Error report
+def error_report():
     padding = max([len(repo) for repo, branch in Configuration.git_repositories.items()])
     width = os.get_terminal_size().columns
     print(Configuration.colors["red"] + "="*int(width-4) + " END" + Configuration.colors["end"])
@@ -206,7 +199,7 @@ def main():
         
     # Execution time report
     print("Execution time:")
-    print("Total: {}. git: {}, mvn: {}".format(str(timedelta(seconds=Configuration.times["end"] - Configuration.times["start"])).split('.')[0], str(timedelta(seconds=git_end - Configuration.times["start"])).split('.')[0], str(timedelta(seconds=mvn_end - git_end)).split('.')[0]))
+    print("Total: {}. git: {}, mvn: {}".format(str(timedelta(seconds=Configuration.times["end"] - Configuration.times["start"])).split('.')[0], str(timedelta(seconds=Configuration.times["git_end"] - Configuration.times["start"])).split('.')[0], str(timedelta(seconds=Configuration.times["mvn_end"] - Configuration.times["git_end"])).split('.')[0]))
     print()
     for repo_dir, branch in Configuration.git_repositories.items():
         print(repo_dir.ljust(padding) + ": git step: {}".format(str(timedelta(seconds=Configuration.times["git"][repo_dir]["end"] - Configuration.times["git"][repo_dir]["start"])).split('.')[0]))
@@ -232,16 +225,30 @@ def parse_args():
     Configuration.args = parser.parse_args()
     
 
+# MAIN
+def main():
+    
+    # START
+    Configuration.times.update({ "start": time.time() })
+    Configuration.times.update({ "git": dict(), "mvn": dict() })
+     
+    git_step()
+        
+    mvn_step()
+
+    # END
+    Configuration.times.update({ "end": time.time() })
+    
+    error_report()
+
 
 # MAIN
 if __name__ == "__main__":
-    
 
-    
-    # parse args
+    # program parameters
     parse_args()
     
-    # check dirs (log, main repository)
+    # check directories (log, main repository)
     check_dir()
     
     main()
