@@ -17,7 +17,7 @@
     per git, serve essere autenticati ai repository (tramite ssh) altrimenti per ogni repository viene richiesta l'autenticazione manuale
 '''
 
-import os, time, argparse, subprocess
+import os, time, argparse, subprocess, json
 from datetime import timedelta
 from config import *
 
@@ -214,19 +214,73 @@ def parse_args():
     parser.add_argument('-g', '--git-step-only', action="store_true", help="Only execute git pull step (on repositories in config or in --git arg)")
     parser.add_argument('-m', '--mvn-step-only', action="store_true", help="Only execute mvn install step (on repositories in config or in --mvn arg)")
     parser.add_argument('-s', '--silent', action="store_true", help="Suppress output print (default false)")
-    parser.add_argument('--git-only', type=str, metavar="<repository list> (ex: resevo-parent-lib,resevo-apigw-service)", help="List repositories to git pull only (overrides configuration file)")
-    parser.add_argument('--mvn-only', type=str, metavar="<repository list> (ex: resevo-parent-lib,resevo-apigw-service)", help="List repositories to mvn install only (overrides configuration file)")
-    parser.add_argument('--only', type=str, metavar="<repository list> (ex: resevo-parent-lib,resevo-apigw-service)", help="List repositories to git pull + mvn install (overrides configuration file)")
-    parser.add_argument('--git-except', type=str, metavar="<repository list> (ex: resevo-parent-lib,resevo-apigw-service)", help="List repositories to exclude from git pull step (overrides configuration file)")
-    parser.add_argument('--mvn-except', type=str, metavar="<repository list> (ex: resevo-parent-lib,resevo-apigw-service)", help="List repositories to exclude from mvn install step (overrides configuration file)")
-    parser.add_argument('--except', type=str, metavar="<repository list> (ex: resevo-parent-lib,resevo-apigw-service)", help="List repositories to exclude from git pull + mvn install (overrides configuration file)")    
+    parser.add_argument('--git-only', type=str, metavar="<repository:branch ordered dict> (ex: \"{'resevo-parent':'develop','resevo-apigw-service':'develop'}\")", help="List repositories to git pull only (overrides configuration file)")
+    parser.add_argument('--mvn-only', type=str, metavar="<repository list> (ex: \"resevo-parent,resevo-apigw-service\")", help="List repositories to mvn install only (overrides configuration file)")
+    parser.add_argument('--only', type=str, metavar="<repository:branch ordered dict> (ex: \"{'resevo-parent':'develop','resevo-apigw-service':'develop'}\")", help="List repositories to git pull + mvn install (overrides configuration file)")
+    parser.add_argument('--git-except', type=str, metavar="<repository list> (ex: \"resevo-parent,resevo-apigw-service\")", help="List repositories to exclude from git pull step (overrides configuration file)")
+    parser.add_argument('--mvn-except', type=str, metavar="<repository list> (ex: \"resevo-parent,resevo-apigw-service\")", help="List repositories to exclude from mvn install step (overrides configuration file)")
+    parser.add_argument('--except', type=str, metavar="<repository list> (ex: \"resevo-parent,resevo-apigw-service\")", help="List repositories to exclude from git pull + mvn install (overrides configuration file)")    
     parser.add_argument('--force-maven', action="store_true", help="Run maven install step even if git project is already up-to-date (default false)")
     
     Configuration.args = parser.parse_args()
     
 
+# Compute git and maven repositories lists, based on program parameters
+def calc_repos():
+    decoder = json.JSONDecoder(object_pairs_hook=OrderedDict)
+
+    # --git-step-only
+    if Configuration.args.git_step_only:
+        Configuration.mvn_repositories = []
+    
+    # --mvn-step-only
+    if Configuration.args.mvn_step_only:
+        Configuration.git_repositories = dict()
+        
+    # --git-only
+    if Configuration.args.git_only:
+        try:
+            Configuration.git_repositories = decoder.decode(Configuration.args.git_only.replace(" ", "").replace("'", '"'))
+        except json.decoder.JSONDecodeError as e:
+            print("Error decoding --git-only parameter (double check quotes!)")
+            print(e)
+            exit(1)
+        
+    # --mvn-only
+    if Configuration.args.mvn_only:
+        Configuration.mvn_repositories = Configuration.args.mvn_only.replace(" ", "").split(',')
+    
+    # --only
+    if Configuration.args.only:
+        try:
+            Configuration.git_repositories = decoder.decode(Configuration.args.only.replace(" ", "").replace("'", '"'))
+            Configuration.mvn_repositories = [ repo for repo, branch in decoder.decode(Configuration.args.only.replace(" ", "").replace("'", '"')).items() ]
+        except json.decoder.JSONDecodeError as e:
+            print("Error decoding --only parameter (double check quotes!)")
+            print(e)
+            exit(1)
+    
+    # --git-except
+    if Configuration.args.git_except:
+        # una cosa del genere, ma ocio a mantenere poi il ordered dict una volta finito
+        Configuration.git_repositories = [ repo for repo in Configuration.git_repositories.items() if repo not in Configuration.args.git_only.replace(" ", "").split(',')
+    
+    # --mvn-except
+    
+    # --except
+    
+
 # MAIN
-def main():
+if __name__ == "__main__":
+
+    # program parameters
+    parse_args()
+    
+    # check directories (log, main repository)
+    check_dir()
+    
+    
+    calc_repos()
     
     # START
     Configuration.times.update({ "start": time.time() })
@@ -240,22 +294,14 @@ def main():
     Configuration.times.update({ "end": time.time() })
     
     error_report()
-
-
-# MAIN
-if __name__ == "__main__":
-
-    # program parameters
-    parse_args()
-    
-    # check directories (log, main repository)
-    check_dir()
-    
-    main()
     
 
 # TODO: 
 
 # report finale deve dire (per ciascun projetto): se ha stashato, se hai pullato roba nuova oppure no, se la mvn install è andata o no
 
-# implementare gli args: calcola innanzitutto la lista di repo (git e mvn) su cui devi eseguire, in base ai vari args
+# per git-step-only e mvn-step-only, meglio fargli proprio skippare la chiamata a git_step() nel main, oppure va bene valorizzare le liste a vuote?
+# -> TESTARE
+
+
+# -> avanti con # --git-except
