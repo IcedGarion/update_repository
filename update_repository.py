@@ -23,6 +23,7 @@ from config import *
 
 # Globals
 log_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "log")
+colors = {"red": '\033[91m', "yellow": '\033[93m', "green": '\033[92m', "end": '\033[0m'}
 
 
 # Functions
@@ -80,7 +81,6 @@ def main(args):
     
     # Vars for logging
     width = width = os.get_terminal_size().columns
-    colors = {"red": '\033[91m', "yellow": '\033[93m', "green": '\033[92m', "end": '\033[0m'}
     error_report = []
     times = dict()
     git_count = 0
@@ -202,12 +202,15 @@ def main(args):
 def parse_args():
     parser = argparse.ArgumentParser(prog='Repository update', description='Aggiorna tutti i repository facendo git pull del branch indicato e ricompilando il progetto con mvn install')
     parser.add_argument('-t', '--test', action="store_true", help="Run maven tests during mvn install (default false)")
-    parser.add_argument('-g', '--git-only', action="store_true", help="Only execute git pull step (on repositories in config or in --git arg)")
-    parser.add_argument('-m', '--mvn-only', action="store_true", help="Only execute mvn install step (on repositories in config or in --mvn arg)")
+    parser.add_argument('-g', '--git-step-only', action="store_true", help="Only execute git pull step (on repositories in config or in --git arg)")
+    parser.add_argument('-m', '--mvn-step-only', action="store_true", help="Only execute mvn install step (on repositories in config or in --mvn arg)")
     parser.add_argument('-s', '--silent', action="store_true", help="Suppress output print (default false)")
-    parser.add_argument('--git', type=str, metavar="<repository list> (ex: resevo-parent-lib,resevo-apigw-service)", help="List repositories to git pull only (overrides configuration file)")
-    parser.add_argument('--mvn', type=str, metavar="<repository list> (ex: resevo-parent-lib,resevo-apigw-service)", help="List repositories to mvn install only (overrides configuration file)")
+    parser.add_argument('--git-only', type=str, metavar="<repository list> (ex: resevo-parent-lib,resevo-apigw-service)", help="List repositories to git pull only (overrides configuration file)")
+    parser.add_argument('--mvn-only', type=str, metavar="<repository list> (ex: resevo-parent-lib,resevo-apigw-service)", help="List repositories to mvn install only (overrides configuration file)")
     parser.add_argument('--only', type=str, metavar="<repository list> (ex: resevo-parent-lib,resevo-apigw-service)", help="List repositories to git pull + mvn install (overrides configuration file)")
+    parser.add_argument('--git-except', type=str, metavar="<repository list> (ex: resevo-parent-lib,resevo-apigw-service)", help="List repositories to exclude from git pull step (overrides configuration file)")
+    parser.add_argument('--mvn-except', type=str, metavar="<repository list> (ex: resevo-parent-lib,resevo-apigw-service)", help="List repositories to exclude from mvn install step (overrides configuration file)")
+    parser.add_argument('--except', type=str, metavar="<repository list> (ex: resevo-parent-lib,resevo-apigw-service)", help="List repositories to exclude from git pull + mvn install (overrides configuration file)")    
     
     return parser.parse_args()
     
@@ -218,7 +221,7 @@ if __name__ == "__main__":
     # parse args
     args = parse_args()
     
-    # check dirs (log, repository, ...)
+    # check dirs (log, main repository)
     check_dir()
     
     main(args)
@@ -228,4 +231,5 @@ if __name__ == "__main__":
 
 # report finale deve dire (per ciascun projetto): se ha stashato, se hai pullato roba nuova oppure no, se la mvn install è andata o no
 
-# testare creazione dir log se manca
+# implementare gli args: calcola innanzitutto la lista di repo (git e mvn) su cui devi eseguire, in base ai vari args
+# aggiungere anche un --force-mvn: (default false) se fai git pull e sei gia updated, non fa la mvn install! skippa
