@@ -18,6 +18,7 @@
 '''
 
 import os, time, argparse, subprocess
+from datetime import timedelta
 from config import *
 
 
@@ -182,6 +183,8 @@ def main(args):
     times.update({ "end": time.time() })
     
     # Error report
+    padding = max([len(repo) for repo, branch in git_repositories.items()])
+    
     print(colors["red"] + "="*int(width-4) + " END" + colors["end"])
     if(len(error_report) == 0):
         print("ERROR REPORT: " + colors["green"] + "OK!!" + colors["end"])
@@ -191,12 +194,13 @@ def main(args):
         
     # Execution time report
     print("Execution time:")
-    print("Total: {:.3} seconds. git: {:.3} seconds, mvn: {:.3} seconds".format(times["end"] - times["start"], git_end - times["start"], mvn_end - git_end))
+    print("Total: {}. git: {}, mvn: {}".format(str(timedelta(seconds=times["end"] - times["start"])).split('.')[0], str(timedelta(seconds=git_end - times["start"])).split('.')[0], str(timedelta(seconds=mvn_end - git_end)).split('.')[0]))
+    print()
     for repo_dir, branch in git_repositories.items():
-        print("{}: git step: {:.3} seconds".format(repo_dir, times["git"][repo_dir]["end"] - times["git"][repo_dir]["start"]))
+        print(repo_dir.ljust(padding) + ": git step: {}".format(str(timedelta(seconds=times["git"][repo_dir]["end"] - times["git"][repo_dir]["start"])).split('.')[0]))
         
         if(repo_dir in mvn_repositories):
-            print(" "*len(repo_dir) + "  mvn step: {:.3} seconds".format(times["mvn"][repo_dir]["end"] - times["mvn"][repo_dir]["start"]))
+            print(" "*padding + "  mvn step: {}".format(str(timedelta(seconds=times["mvn"][repo_dir]["end"] - times["mvn"][repo_dir]["start"])).split('.')[0]))
     
 
 def parse_args():
