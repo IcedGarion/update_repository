@@ -65,7 +65,9 @@ def git_command(abs_repo_path, branch, repo_dir):
             
         # print on console and file
         for line in cmd.stdout:
-            print(line.decode("utf-8"), end='')
+            
+            if not Configuration.args.silent:
+                print(line.decode("utf-8"), end='')
             output_file.write(line)
             
         cmd.wait()
@@ -78,12 +80,17 @@ def mvn_command(abs_repo_path, repo_dir):
     with open(os.path.join(Configuration.log_dir, "mvn-{}.log".format(repo_dir)), 'wb') as output_file:
         
         # Exec command
-        cmd = subprocess.Popen("cd " + abs_repo_path + " && mvn clean install -DskipTests", \
+        if Configuration.args.test:
+            cmd = subprocess.Popen("cd " + abs_repo_path + " && mvn clean install", \
+                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+        else:
+            cmd = subprocess.Popen("cd " + abs_repo_path + " && mvn clean install -DskipTests", \
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
             
         # print on console and file
         for line in cmd.stdout:
-            print(line.decode("utf-8").replace("BUILD SUCCESS", Configuration.colors["green"] + "BUILD SUCCESS" + Configuration.colors["end"]).replace("BUILD FAILURE", Configuration.colors["red"] + "BUILD FAILURE" + Configuration.colors["end"]), end='')
+            if not Configuration.args.silent:
+                print(line.decode("utf-8").replace("BUILD SUCCESS", Configuration.colors["green"] + "BUILD SUCCESS" + Configuration.colors["end"]).replace("BUILD FAILURE", Configuration.colors["red"] + "BUILD FAILURE" + Configuration.colors["end"]), end='')
             output_file.write(line)
             
         cmd.wait()
@@ -169,7 +176,11 @@ def mvn_step():
             continue
         
         print(Configuration.colors["yellow"] + "-"*int(width-(len(repo_dir)+len(str(mvn_count))+len(str(mvn_total))+7)) + " " + repo_dir + " ({} / {})".format(mvn_count, mvn_total) + Configuration.colors["end"])
-        print("> cd {}, mvn clean install -DskipTests".format(abs_repo_path))
+        
+        if Configuration.args.test:
+            print("> cd {}, mvn clean install".format(abs_repo_path))
+        else:
+            print("> cd {}, mvn clean install -DskipTests".format(abs_repo_path))
         
         # EXEC COMMAND
         exit_code = mvn_command(abs_repo_path, repo_dir)
@@ -262,7 +273,6 @@ def calc_repos():
     
     # --git-except
     if Configuration.args.git_except:
-        #  TODO: ma ocio a mantenere poi il ordered dict una volta finito
         Configuration.git_repositories = OrderedDict( (repo, branch) for repo, branch in Configuration.git_repositories.items() if repo not in Configuration.args.git_except.replace(" ", "").split(','))
     
     # --mvn-except
@@ -308,4 +318,4 @@ if __name__ == "__main__":
 # 1. report finale deve dire (per ciascun projetto): se ha stashato, se hai pullato roba nuova oppure no, se la mvn install è andata o no
 
 
-# 4. Gestire, in giro per il codice: --force-maven, -t, -g, -s, -m
+# 4. Gestire, in giro per il codice: --force-maven, -t, -s
