@@ -219,7 +219,7 @@ def parse_args():
     parser.add_argument('--only', type=str, metavar="<repository:branch ordered dict> (ex: \"{'resevo-parent':'develop','resevo-apigw-service':'develop'}\")", help="List repositories to git pull + mvn install (overrides configuration file)")
     parser.add_argument('--git-except', type=str, metavar="<repository list> (ex: \"resevo-parent,resevo-apigw-service\")", help="List repositories to exclude from git pull step (overrides configuration file)")
     parser.add_argument('--mvn-except', type=str, metavar="<repository list> (ex: \"resevo-parent,resevo-apigw-service\")", help="List repositories to exclude from mvn install step (overrides configuration file)")
-    parser.add_argument('--except', type=str, metavar="<repository list> (ex: \"resevo-parent,resevo-apigw-service\")", help="List repositories to exclude from git pull + mvn install (overrides configuration file)")    
+    parser.add_argument('--all-except', type=str, metavar="<repository list> (ex: \"resevo-parent,resevo-apigw-service\")", help="List repositories to exclude from git pull + mvn install (overrides configuration file)")    
     parser.add_argument('--force-maven', action="store_true", help="Run maven install step even if git project is already up-to-date (default false)")
     
     Configuration.args = parser.parse_args()
@@ -262,46 +262,50 @@ def calc_repos():
     
     # --git-except
     if Configuration.args.git_except:
-        # una cosa del genere, ma ocio a mantenere poi il ordered dict una volta finito
-        Configuration.git_repositories = [ repo for repo in Configuration.git_repositories.items() if repo not in Configuration.args.git_only.replace(" ", "").split(',')
+        #  TODO: ma ocio a mantenere poi il ordered dict una volta finito
+        Configuration.git_repositories = OrderedDict( (repo, branch) for repo, branch in Configuration.git_repositories.items() if repo not in Configuration.args.git_except.replace(" ", "").split(','))
     
     # --mvn-except
-    
-    # --except
-    
+    if Configuration.args.mvn_except:
+        Configuration.mvn_repositories = [ repo for repo in Configuration.mvn_repositories if repo not in Configuration.args.mvn_except.replace(" ", "").split(',') ]
+        
+    # --all-except = git-except + mvn-except
+    if Configuration.args.all_except:
+        Configuration.git_repositories = OrderedDict( (repo, branch) for repo, branch in Configuration.git_repositories.items() if repo not in Configuration.args.all_except.replace(" ", "").split(','))
+        Configuration.mvn_repositories = [ repo for repo in Configuration.mvn_repositories if repo not in Configuration.args.all_except.replace(" ", "").split(',') ]
 
 # MAIN
 if __name__ == "__main__":
 
-    # program parameters
+    # parse program parameters
     parse_args()
     
     # check directories (log, main repository)
     check_dir()
     
-    
+    # parse parameters to determine repository lists to work on (git / mvn)
     calc_repos()
     
     # START
     Configuration.times.update({ "start": time.time() })
     Configuration.times.update({ "git": dict(), "mvn": dict() })
-     
+    
+    # git pull
     git_step()
-        
+    
+    # mvn install
     mvn_step()
 
     # END
     Configuration.times.update({ "end": time.time() })
     
+    # print errors and execution time
     error_report()
     
 
 # TODO: 
 
-# report finale deve dire (per ciascun projetto): se ha stashato, se hai pullato roba nuova oppure no, se la mvn install è andata o no
-
-# per git-step-only e mvn-step-only, meglio fargli proprio skippare la chiamata a git_step() nel main, oppure va bene valorizzare le liste a vuote?
-# -> TESTARE
+# 1. report finale deve dire (per ciascun projetto): se ha stashato, se hai pullato roba nuova oppure no, se la mvn install è andata o no
 
 
-# -> avanti con # --git-except
+# 4. Gestire, in giro per il codice: --force-maven, -t, -g, -s, -m
