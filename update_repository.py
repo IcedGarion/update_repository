@@ -188,7 +188,6 @@ def mvn_step():
 
 
 def error_report():
-    padding = max([len(repo) for repo, branch in Configuration.git_repositories.items()])
     width = os.get_terminal_size().columns
     print(Configuration.colors["red"] + "="*int(width-4) + " END" + Configuration.colors["end"])
     if(len(Configuration.error_report) == 0):
@@ -202,6 +201,7 @@ def error_report():
     print("Total: {}. git: {}, mvn: {}".format(str(timedelta(seconds=Configuration.times["end"] - Configuration.times["start"])).split('.')[0], str(timedelta(seconds=Configuration.times["git_end"] - Configuration.times["start"])).split('.')[0], str(timedelta(seconds=Configuration.times["mvn_end"] - Configuration.times["git_end"])).split('.')[0]))
     print()
     for repo_dir, branch in Configuration.git_repositories.items():
+        padding = max([len(repo) for repo, branch in Configuration.git_repositories.items()])
         print(repo_dir.ljust(padding) + ": git step: {}".format(str(timedelta(seconds=Configuration.times["git"][repo_dir]["end"] - Configuration.times["git"][repo_dir]["start"])).split('.')[0]))
         
         if(repo_dir in Configuration.mvn_repositories):
