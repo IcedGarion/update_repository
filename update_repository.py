@@ -113,6 +113,12 @@ def analyze_mvn_output(repo: str, output: str):
 def mvn_command(abs_repo_path, repo_dir):
     output = ""
     
+    # Skip mvn step if git already up-to-date
+    if "Already up-to-date" in Configuration.git_output[repo_dir] and not Configuration.args.force_maven:
+        print("Skipped Mvn build (project already up-to-date)")
+        Configuration.mvn_output[repo_dir] = "Skipped Mvn build (project already up-to-date)"
+        return 0    
+    
     # Open log file
     with open(os.path.join(Configuration.log_dir, "mvn-{}.log".format(repo_dir)), 'wb') as output_file:
         
@@ -170,6 +176,7 @@ def git_step():
         # Git pull abs_repo_path
         print(Configuration.colors["yellow"] + "-"*int(width-(len(repo_dir)+len(str(git_count))+len(str(git_total))+7)) + " " + repo_dir + " ({} / {})".format(git_count, git_total) + Configuration.colors["end"])
         print("> cd {}, git stash && git checkout {} && git pull --rebase origin {}".format(abs_repo_path, branch, branch))
+        print()
         
         # EXEC COMMAND
         exit_code = git_command(abs_repo_path, branch, repo_dir)
@@ -219,8 +226,10 @@ def mvn_step():
         
         if Configuration.args.test:
             print("> cd {}, mvn clean install".format(abs_repo_path))
+            print()
         else:
             print("> cd {}, mvn clean install -DskipTests".format(abs_repo_path))
+            print()
         
         # EXEC COMMAND
         exit_code = mvn_command(abs_repo_path, repo_dir)
@@ -355,9 +364,4 @@ if __name__ == "__main__":
     
 
 # TODO: 
-
-# 1. report finale deve dire (per ciascun projetto): se ha stashato, se hai pullato roba nuova oppure no, se la mvn install è andata o no
-
 # 2. --force-maven: da fare dopo il punto 1.
-
-# A INIZIO MVN STEP E GIT STEP, ELENCARE NOME DEI REPO SU CUI SI STA PER OPERARE
