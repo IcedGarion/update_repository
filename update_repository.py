@@ -36,6 +36,10 @@ class Configuration:
     # calc repositories to scan, git / mvn and exclude blacklisted
     git_repositories = OrderedDict({ repo: branch for repo, branch in repositories.items() if repo not in blacklist })
     mvn_repositories = [ repo for repo, branch in repositories.items() if repo not in mvn_exclusions ]
+    
+    # cmd output analysis
+    git_output = { repo: "" for repo, branch in git_repositories.items() }
+    mvn_output = { repo: "" for repo in mvn_repositories }
 
     # Vars for logging
     error_report = []
@@ -55,7 +59,26 @@ def check_dir():
         os.makedirs(Configuration.log_dir)
 
 
+def analyze_git_output(repo: str, branch: str, output: str):
+    if "No local changes to save" in output:
+        Configuration.git_output[repo] += "Nothing to stash, "
+    else:
+        Configuration.git_output[repo] += "Stashed changes, "
+    
+    if "Already on" in output:
+        Configuration.git_output[repo] += "Already on branch {}, ".format(branch)
+    else:
+        Configuration.git_output[repo] += "Checkout branch {}, ".format(branch)
+        
+    if "Your branch is up to date with" in output:
+        Configuration.git_output[repo] += "Already up-to-date"
+    else:
+        Configuration.git_output[repo] += "Pulled updates"
+
+
 def git_command(abs_repo_path, branch, repo_dir):
+    output = ""
+    
     # Open log file
     with open(os.path.join(Configuration.log_dir, "git-{}.log".format(repo_dir)), 'wb') as output_file:
         
@@ -66,16 +89,30 @@ def git_command(abs_repo_path, branch, repo_dir):
         # print on console and file
         for line in cmd.stdout:
             
+            # store output for analysis
+            output += line.decode("utf-8")
+            
             if not Configuration.args.silent:
                 print(line.decode("utf-8"), end='')
             output_file.write(line)
             
         cmd.wait()
     
-    return cmd.returncode    
+    analyze_git_output(repo_dir, branch, output)
     
+    return cmd.returncode    
+
+  
+def analyze_mvn_output(repo: str, output: str):
+    if "BUILD SUCCESS" in output:
+        Configuration.mvn_output[repo] = "Mvn build Success"
+    elif "BUILD FAILURE" in output:
+        Configuration.mvn_output[repo] = "Mvn Build FAILURE"
+      
 
 def mvn_command(abs_repo_path, repo_dir):
+    output = ""
+    
     # Open log file
     with open(os.path.join(Configuration.log_dir, "mvn-{}.log".format(repo_dir)), 'wb') as output_file:
         
@@ -89,11 +126,16 @@ def mvn_command(abs_repo_path, repo_dir):
             
         # print on console and file
         for line in cmd.stdout:
+            # store output for analysis
+            output += line.decode("utf-8")
+            
             if not Configuration.args.silent:
                 print(line.decode("utf-8").replace("BUILD SUCCESS", Configuration.colors["green"] + "BUILD SUCCESS" + Configuration.colors["end"]).replace("BUILD FAILURE", Configuration.colors["red"] + "BUILD FAILURE" + Configuration.colors["end"]), end='')
             output_file.write(line)
             
         cmd.wait()
+        
+    analyze_mvn_output(repo_dir, output)
 
     return cmd.returncode    
     
@@ -105,6 +147,7 @@ def git_step():
     width = os.get_terminal_size().columns
     
     print(Configuration.colors["red"] + "="*int(width-15) + " GIT PULL STEP" + Configuration.colors["end"])
+    print("Git repo: {}".format([x for x,y in Configuration.git_repositories.items()]))
     for repo_dir, branch in Configuration.git_repositories.items():
         git_count += 1
         abs_repo_path = os.path.join(Configuration.config_repo_main_dir, repo_dir)
@@ -151,6 +194,7 @@ def mvn_step():
     Configuration.times.update({ "mvn_start": time.time() })
     
     print(Configuration.colors["red"] + "="*int(width-18) + " MVN INSTALL STEP"+ Configuration.colors["end"])
+    print("Mvn repo: {}".format([x for x in Configuration.mvn_repositories]))
     for repo_dir in Configuration.mvn_repositories:
         mvn_count += 1
         width = os.get_terminal_size().columns
@@ -209,10 +253,10 @@ def error_report():
     print()
     for repo_dir, branch in Configuration.git_repositories.items():
         padding = max([len(repo) for repo, branch in Configuration.git_repositories.items()])
-        print(repo_dir.ljust(padding) + ": git step: {}".format(str(timedelta(seconds=Configuration.times["git"][repo_dir]["end"] - Configuration.times["git"][repo_dir]["start"])).split('.')[0]))
+        print(repo_dir.ljust(padding) + ": git step: {} - {}".format(str(timedelta(seconds=Configuration.times["git"][repo_dir]["end"] - Configuration.times["git"][repo_dir]["start"])).split('.')[0],  Configuration.git_output[repo_dir]))
         
         if(repo_dir in Configuration.mvn_repositories):
-            print(" "*padding + "  mvn step: {}".format(str(timedelta(seconds=Configuration.times["mvn"][repo_dir]["end"] - Configuration.times["mvn"][repo_dir]["start"])).split('.')[0]))
+            print(" "*padding + "  mvn step: {} - {}".format(str(timedelta(seconds=Configuration.times["mvn"][repo_dir]["end"] - Configuration.times["mvn"][repo_dir]["start"])).split('.')[0],  Configuration.mvn_output[repo_dir]))
     
 
 def parse_args():
@@ -293,6 +337,7 @@ if __name__ == "__main__":
     calc_repos()
     
     # START
+    print("START")
     Configuration.times.update({ "start": time.time() })
     Configuration.times.update({ "git": dict(), "mvn": dict() })
     
@@ -313,6 +358,6 @@ if __name__ == "__main__":
 
 # 1. report finale deve dire (per ciascun projetto): se ha stashato, se hai pullato roba nuova oppure no, se la mvn install è andata o no
 
-# MANCA --force-maven
+# 2. --force-maven: da fare dopo il punto 1.
 
 # A INIZIO MVN STEP E GIT STEP, ELENCARE NOME DEI REPO SU CUI SI STA PER OPERARE
