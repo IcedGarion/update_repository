@@ -135,10 +135,6 @@ def git_step():
         if(exit_code != 0):
             Configuration.error_report.append("{}: git step error ({})".format(repo_dir, "cd " + abs_repo_path + " && git stash && git checkout " + branch + " && git pull --rebase origin " + branch))
         
-        # error git pull
-        if(exit_code != 0):
-            Configuration.error_report.append("{}: git step error ({})".format(repo_dir, "cd " + abs_repo_path + " && git stash && git checkout " + branch + " && git pull --rebase origin " + branch))
-        
         # execution time calc
         git_end = time.time()
         Configuration.times["git"][repo_dir].update({"start": git_start})
@@ -188,7 +184,6 @@ def mvn_step():
         # error mvn install
         if(exit_code != 0):
             Configuration.error_report.append("{}: mvn install step error".format(repo_dir))
-       
             
         # execution time calc
         mvn_end = time.time()
@@ -208,6 +203,7 @@ def error_report():
         print('\n'.join([x for x in Configuration.error_report]))
         
     # Execution time report
+    print()
     print("Execution time:")
     print("Total: {}. git: {}, mvn: {}".format(str(timedelta(seconds=Configuration.times["end"] - Configuration.times["start"])).split('.')[0], str(timedelta(seconds=Configuration.times["git_end"] - Configuration.times["start"])).split('.')[0], str(timedelta(seconds=Configuration.times["mvn_end"] - Configuration.times["git_end"])).split('.')[0]))
     print()
@@ -220,7 +216,7 @@ def error_report():
     
 
 def parse_args():
-    parser = argparse.ArgumentParser(prog='Repository update', description='Aggiorna tutti i repository facendo git pull del branch indicato e ricompilando il progetto con mvn install')
+    parser = argparse.ArgumentParser(prog='Repository update', description='Update all your local repositories by git pulling the specified branch and recompiling the project with maven install')
     parser.add_argument('-t', '--test', action="store_true", help="Run maven tests during mvn install (default false)")
     parser.add_argument('-g', '--git-step-only', action="store_true", help="Only execute git pull step (on repositories in config or in --git arg)")
     parser.add_argument('-m', '--mvn-step-only', action="store_true", help="Only execute mvn install step (on repositories in config or in --mvn arg)")
@@ -317,5 +313,6 @@ if __name__ == "__main__":
 
 # 1. report finale deve dire (per ciascun projetto): se ha stashato, se hai pullato roba nuova oppure no, se la mvn install è andata o no
 
+# MANCA --force-maven
 
-# 4. Gestire, in giro per il codice: --force-maven, -t, -s
+# A INIZIO MVN STEP E GIT STEP, ELENCARE NOME DEI REPO SU CUI SI STA PER OPERARE
