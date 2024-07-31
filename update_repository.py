@@ -70,10 +70,13 @@ def analyze_git_output(repo: str, branch: str, output: str):
     else:
         Configuration.git_output[repo] += "Checkout branch {}, ".format(branch)
         
-    if "Your branch is up to date with" in output:
-        Configuration.git_output[repo] += "Already up-to-date"
+    if "Already up to date." in output:
+        Configuration.git_output[repo] += "Already up-to-date, "
     else:
-        Configuration.git_output[repo] += "Pulled updates"
+        Configuration.git_output[repo] += "Pulled updates, "
+        
+    if "Your branch is up to date with" in output:
+        Configuration.git_output[repo] += "Nothing new to push on branch"
 
 
 def git_command(abs_repo_path, branch, repo_dir):
@@ -111,7 +114,7 @@ def analyze_mvn_output(repo: str, output: str):
       
 
 def mvn_command(abs_repo_path, repo_dir):
-    output = ""
+    output = ""    
     
     # Skip mvn step if git already up-to-date
     if "Already up-to-date" in Configuration.git_output[repo_dir] and not Configuration.args.force_maven:
@@ -364,4 +367,4 @@ if __name__ == "__main__":
     
 
 # TODO: 
-# 2. --force-maven: da fare dopo il punto 1.
+# COLORARE MEGLIO GLI OUTPUT FINALI. Ad esempio, in bianco se nessuna modifica, in ROSSO se hai stashato, in giallo se hai cambiato branch, in verde se mvn installato
