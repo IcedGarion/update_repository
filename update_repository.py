@@ -63,17 +63,17 @@ def analyze_git_output(repo: str, branch: str, output: str):
     if "No local changes to save" in output:
         Configuration.git_output[repo] += "Nothing to stash, "
     else:
-        Configuration.git_output[repo] += "Stashed changes, "
+        Configuration.git_output[repo] += Configuration.colors["red"] + "Stashed changes" + Configuration.colors["end"] + ", "
     
     if "Already on" in output:
         Configuration.git_output[repo] += "Already on branch {}, ".format(branch)
     else:
-        Configuration.git_output[repo] += "Checkout branch {}, ".format(branch)
+        Configuration.git_output[repo] +=  Configuration.colors["yellow"] + "Checkout branch {}".format(branch) + Configuration.colors["end"] + ", "
         
     if "Already up to date." in output:
         Configuration.git_output[repo] += "Already up-to-date, "
     else:
-        Configuration.git_output[repo] += "Pulled updates, "
+        Configuration.git_output[repo] += Configuration.colors["green"] + "Pulled updates" + Configuration.colors["end"] + ", "
         
     if "Your branch is up to date with" in output:
         Configuration.git_output[repo] += "Nothing new to push on branch"
@@ -108,9 +108,9 @@ def git_command(abs_repo_path, branch, repo_dir):
   
 def analyze_mvn_output(repo: str, output: str):
     if "BUILD SUCCESS" in output:
-        Configuration.mvn_output[repo] = "Mvn build Success"
+        Configuration.mvn_output[repo] = Configuration.colors["green"] + "Mvn build Success" + Configuration.colors["end"]
     elif "BUILD FAILURE" in output:
-        Configuration.mvn_output[repo] = "Mvn Build FAILURE"
+        Configuration.mvn_output[repo] = Configuration.colors["red"] + "Mvn Build FAILURE" + Configuration.colors["end"]
       
 
 def mvn_command(abs_repo_path, repo_dir):
@@ -364,7 +364,3 @@ if __name__ == "__main__":
     
     # print errors and execution time
     error_report()
-    
-
-# TODO: 
-# COLORARE MEGLIO GLI OUTPUT FINALI. Ad esempio, in bianco se nessuna modifica, in ROSSO se hai stashato, in giallo se hai cambiato branch, in verde se mvn installato
