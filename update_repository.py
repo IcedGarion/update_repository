@@ -364,3 +364,5 @@ if __name__ == "__main__":
     
     # print errors and execution time
     error_report()
+    
+# TODO: un readme
