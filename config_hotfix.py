@@ -4,20 +4,21 @@ from collections import OrderedDict
 repo_main_dir = "C:\\Users\\iTuna\\Desktop\\ADESSO\\GNV\\RESEVO\\repository"
 
 # Repositories and their branches to git-pull + to mvn install
+hotfix_branch = "hotfix/RESEVO-4.610"
 repositories = OrderedDict({ \
-"resevo-parent": "hotfix/RESEVO-4.259", "resevo-domain-lib": "hotfix/RESEVO-4.259", "resevo-core-lib": "hotfix/RESEVO-4.259", \
-"resevo-context-lib": "hotfix/RESEVO-4.259", "resevo-messaging-lib": "hotfix/RESEVO-4.259", \
-"resevo-saga-lib": "hotfix/RESEVO-4.259", "resevo-rule-lib": "hotfix/RESEVO-4.259", "resevo-testsupport-lib": "hotfix/RESEVO-4.259", \
-"resevo-apigw-service": "hotfix/RESEVO-4.259", "resevo-booking-service": "hotfix/RESEVO-4.259", \
-"resevo-db-manager": "master", "resevo-discovery-service": "hotfix/RESEVO-4.259", "resevo-freightbooking-service": "hotfix/RESEVO-4.259", \
-"resevo-freightcompany-service": "hotfix/RESEVO-4.259", "resevo-freightpricing-service": "hotfix/RESEVO-4.259", "resevo-integration-service": "hotfix/RESEVO-4.259", \
-"resevo-notification-service": "hotfix/RESEVO-4.259", "resevo-payment-service": "hotfix/RESEVO-4.259", \
-"resevo-piletfeed-service": "hotfix/RESEVO-4.259", "resevo-port-service": "hotfix/RESEVO-4.259","resevo-pricing-service": "hotfix/RESEVO-4.259", \
-"resevo-reportprint-service": "hotfix/RESEVO-4.259", "resevo-sbadmin-service": "hotfix/RESEVO-4.259", "resevo-ship-service": "hotfix/RESEVO-4.259", \
-"resevo-testrunnere2e-app": "feature/cucumber", "resevo-user-service": "hotfix/RESEVO-4.259", \
-"resevo-voy-service": "hotfix/RESEVO-4.259", "resevo-config-service": "master", "resevo-cart-lib": "hotfix/RESEVO-4.259", \
-"resevo-policies-lib": "hotfix/RESEVO-4.259", "reservation-cgi": "master","resevo-api-collections": "main", "resevo-cast": "hotfix/RESEVO-4.259", \
-"resevo-devops": "master", "resevo-eid-service": "hotfix/RESEVO-4.259", "resevo-regulatory-service": "hotfix/RESEVO-4.259"
+"resevo-parent": hotfix_branch, "resevo-domain-lib": hotfix_branch, "resevo-core-lib": hotfix_branch, \
+"resevo-context-lib": hotfix_branch, "resevo-messaging-lib": hotfix_branch, \
+"resevo-saga-lib": hotfix_branch, "resevo-rule-lib": hotfix_branch, "resevo-testsupport-lib": hotfix_branch, \
+"resevo-apigw-service": hotfix_branch, "resevo-booking-service": hotfix_branch, \
+"resevo-db-manager": "master", "resevo-discovery-service": hotfix_branch, "resevo-freightbooking-service": hotfix_branch, \
+"resevo-freightcompany-service": hotfix_branch, "resevo-freightpricing-service": hotfix_branch, "resevo-integration-service": hotfix_branch, \
+"resevo-notification-service": hotfix_branch, "resevo-payment-service": hotfix_branch, \
+"resevo-piletfeed-service": hotfix_branch, "resevo-port-service": hotfix_branch,"resevo-pricing-service": hotfix_branch, \
+"resevo-reportprint-service": hotfix_branch, "resevo-sbadmin-service": hotfix_branch, "resevo-ship-service": hotfix_branch, \
+"resevo-testrunnere2e-app": "feature/cucumber", "resevo-user-service": hotfix_branch, \
+"resevo-voy-service": hotfix_branch, "resevo-config-service": "master", "resevo-cart-lib": hotfix_branch, \
+"resevo-policies-lib": hotfix_branch, "reservation-cgi": "master","resevo-api-collections": "main", "resevo-cast": hotfix_branch, \
+"resevo-devops": "master", "resevo-eid-service": hotfix_branch, "resevo-regulatory-service": hotfix_branch
 })
 
 # Repositories to not mvn-install (not maven projects)
