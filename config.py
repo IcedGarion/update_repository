@@ -10,9 +10,10 @@ repositories = OrderedDict({ \
 "resevo-db-manager": "master", "resevo-discovery-service": "develop", "resevo-freightbooking-service": "develop", "resevo-freightcompany-service": "develop", \
 "resevo-freightpricing-service": "develop", "resevo-integration-service": "develop", "resevo-notification-service": "develop", "resevo-payment-service": "develop", \
 "resevo-piletfeed-service": "develop", "resevo-port-service": "develop","resevo-pricing-service": "develop", "resevo-reportprint-service": "develop", \
-"resevo-sbadmin-service": "develop", "resevo-ship-service": "develop", "resevo-testrunnere2e-app": "develop", "resevo-user-service": "develop", \
-"resevo-voy-service": "develop", "resevo-config-service": "master", "resevo-cart-lib": "develop", \
-"reservation-cgi": "master","resevo-api-collections": "main", "resevo-cast": "develop","resevo-devops": "master", "resevo-eid-service": "develop"
+"resevo-sbadmin-service": "develop", "resevo-ship-service": "develop", "resevo-testrunnere2e-app": "feature/cucumber", "resevo-user-service": "develop", \
+"resevo-voy-service": "develop", "resevo-config-service": "master", "resevo-cart-lib": "develop", "resevo-policies-lib": "develop", \
+"reservation-cgi": "master","resevo-api-collections": "main", "resevo-cast": "develop","resevo-devops": "master", "resevo-eid-service": "develop", \
+"resevo-regulatory-service": "develop"
 })
 
 # Repositories to not mvn-install (not maven projects)

@@ -366,3 +366,6 @@ if __name__ == "__main__":
     error_report()
     
 # TODO: un readme
+# Un parametro in cui specifichi il file di config, così da poter switchare con quello di hotfix
+# la git fetch prima del comando di git checkout
+# quando fai KILL con ctrl+c, intercettare, e stoppare TUTTI i procesi figli lanciati, altrimenti loro vanno avanti di sotto 
