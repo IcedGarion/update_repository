@@ -18,7 +18,7 @@
     per git, serve essere autenticati ai repository (tramite ssh) altrimenti per ogni repository viene richiesta l'autenticazione manuale
 '''
 
-import os, time, argparse, subprocess, json, config
+import os, time, argparse, subprocess, json, signal, config
 from datetime import timedelta
 from collections import OrderedDict
 
@@ -33,6 +33,7 @@ class Configuration:
         self.error_report = []
         self.times = dict()
         
+        # Load repos variables based on configuration file (can be custom)
         self.load_config_file(config)
         
     def load_config_file(self, new_config):
@@ -57,6 +58,21 @@ class Configuration:
 
 configuration = Configuration()
 
+# Intercept CTRL-C signal
+class GracefulKiller:
+  
+  def __init__(self):
+    signal.signal(signal.SIGINT, self.exit_gracefully)
+    signal.signal(signal.SIGTERM, self.exit_gracefully)
+    self.child_processes = []
+
+  def exit_gracefully(self, signum, frame):
+    for p in self.child_processes:
+        p.terminate()
+    exit(1)
+
+# Intercept CTRL-C
+killer = GracefulKiller()
 
 # Functions
 def check_dir():
@@ -99,6 +115,7 @@ def git_command(abs_repo_path, branch, repo_dir):
         # Exec command
         cmd = subprocess.Popen("cd " + abs_repo_path + " && git fetch && git stash && git checkout " + branch + " && git pull --rebase origin " + branch, \
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+        killer.child_processes.append(cmd)
             
         # print on console and file
         for line in cmd.stdout:
@@ -140,10 +157,12 @@ def mvn_command(abs_repo_path, repo_dir):
         if configuration.args.test:
             cmd = subprocess.Popen("cd " + abs_repo_path + " && mvn clean install", \
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+            killer.child_processes.append(cmd)
         else:
             cmd = subprocess.Popen("cd " + abs_repo_path + " && mvn clean install -DskipTests", \
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
-            
+            killer.child_processes.append(cmd)
+
         # print on console and file
         for line in cmd.stdout:
             # store output for analysis
@@ -392,4 +411,3 @@ if __name__ == "__main__":
     error_report()
     
 # TODO: un readme
-# quando fai KILL con ctrl+c, intercettare, e stoppare TUTTI i procesi figli lanciati, altrimenti loro vanno avanti di sotto 
