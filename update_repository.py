@@ -304,7 +304,7 @@ def error_report():
 def parse_args():
     parser = argparse.ArgumentParser(prog='Repository update', description='Update all your local repositories by git pulling the specified branch and recompiling the project with maven install')
     parser.add_argument('-t', '--test', action="store_true", help="Run maven tests during mvn install (default false)")
-    parser.add_argument('-g', '--git-step-only', action="store_true", help="Only execute git pull step (on repositories in config or in --git arg)")
+    parser.add_argument('-g', '--git-step-only', action="store_true", help="Only execute git pull step (on repositories in config or in --git-only arg)")
     parser.add_argument('-m', '--mvn-step-only', action="store_true", help="Only execute mvn install step (on repositories in config or in --mvn arg)")
     parser.add_argument('-s', '--silent', action="store_true", help="Suppress output print (default false)")
     parser.add_argument('--git-only', type=str, metavar="<repository:branch ordered dict> (ex: \"{'resevo-parent':'develop','resevo-apigw-service':'develop'}\")", help="List repositories to git pull only (overrides configuration file)")
