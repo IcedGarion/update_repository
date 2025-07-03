@@ -36,16 +36,16 @@ class Configuration:
         # Load repos variables based on configuration file (can be custom)
         self.load_config_file(config)
         
-    def load_config_file(self, new_config):
+    def load_config_file(self, config):
         # From config file
-        self.config_repo_main_dir = new_config.repo_main_dir
-        self.config_repositories = new_config.repositories
-        self.config_mvn_exclusions = new_config.mvn_exclusions
-        self.config_blacklist = new_config.blacklist
+        self.config_repo_main_dir = config.repo_main_dir
+        self.config_repositories = config.repositories
+        self.config_mvn_exclusions = config.mvn_exclusions if hasattr(config, "mvn_exclusions") else []
+        self.config_blacklist = config.blacklist if hasattr(config, "blacklist") else []
 
         # calc default repositories to scan, git / mvn and exclude blacklisted, based on config file
-        self.git_repositories = OrderedDict({ repo: branch for repo, branch in new_config.repositories.items() if repo not in new_config.blacklist })
-        self.mvn_repositories = [ repo for repo, branch in new_config.repositories.items() if repo not in new_config.mvn_exclusions ]
+        self.git_repositories = OrderedDict({ repo: branch for repo, branch in config.repositories.items() if repo not in self.config_blacklist })
+        self.mvn_repositories = [ repo for repo, branch in config.repositories.items() if repo not in self.config_mvn_exclusions ]
         
         # cmd output analysis
         self.git_output = { repo: "" for repo, branch in self.git_repositories.items() }
@@ -55,24 +55,24 @@ class Configuration:
         self.error_report = []
         self.times = dict()
         
-
 configuration = Configuration()
+
 
 # Intercept CTRL-C signal
 class GracefulKiller:
-  
-  def __init__(self):
-    signal.signal(signal.SIGINT, self.exit_gracefully)
-    signal.signal(signal.SIGTERM, self.exit_gracefully)
-    self.child_processes = []
+    def __init__(self):
+        signal.signal(signal.SIGINT, self.exit_gracefully)
+        signal.signal(signal.SIGTERM, self.exit_gracefully)
+        self.child_processes = []
+        
+    # Kill child processes (git/mvn command)
+    def exit_gracefully(self, signum, frame):
+        for p in self.child_processes:
+            p.terminate()
+        exit(1)
 
-  def exit_gracefully(self, signum, frame):
-    for p in self.child_processes:
-        p.terminate()
-    exit(1)
-
-# Intercept CTRL-C
 killer = GracefulKiller()
+
 
 # Functions
 def check_dir():
@@ -314,7 +314,7 @@ def parse_args():
     parser.add_argument('--mvn-except', type=str, metavar="<repository list> (ex: \"resevo-parent,resevo-apigw-service\")", help="List repositories to exclude from mvn install step (overrides configuration file)")
     parser.add_argument('--all-except', type=str, metavar="<repository list> (ex: \"resevo-parent,resevo-apigw-service\")", help="List repositories to exclude from git pull + mvn install (overrides configuration file)")    
     parser.add_argument('--force-maven', action="store_true", help="Run maven install step even if git project is already up-to-date (default false)")
-    parser.add_argument('--config-file', type=str, help="Specify a custom config file")
+    parser.add_argument('--config-file', type=str, help="Specify a custom config file. If none, then defaults to 'config.py'")
     
     configuration.args = parser.parse_args()
     
@@ -323,16 +323,14 @@ def parse_args():
 def calc_repos():
     decoder = json.JSONDecoder(object_pairs_hook=OrderedDict)
         
-    # Override config file if specified
+    # --config-file: override config file and recalc repos
     if configuration.args.config_file:
-        configuration.config_file = configuration.args.config_file
-        
         try:
             import importlib
-            new_config = importlib.import_module(configuration.config_file.split('.')[0])        
+            new_config = importlib.import_module(configuration.args.config_file.split('.')[0])        
             configuration.load_config_file(new_config)
         except Exception as e:
-            print("Error loading custom configuration file: " + configuration.config_file)
+            print("Error loading custom configuration file: " + configuration.args.config_file)
             print(e)
             exit(1)
 
@@ -360,13 +358,13 @@ def calc_repos():
     
     # --only
     if configuration.args.only:
-        try:
-            configuration.git_repositories = decoder.decode(configuration.args.only.replace(" ", "").replace("'", '"'))
-            configuration.mvn_repositories = [ repo for repo, branch in decoder.decode(configuration.args.only.replace(" ", "").replace("'", '"')).items() ]
-        except json.decoder.JSONDecodeError as e:
-            print("Error decoding --only parameter (double check quotes!)")
-            print(e)
-            exit(1)
+        
+        configuration.git_repositories = decoder.decode(configuration.args.only.replace(" ", "").replace("'", '"'))
+        configuration.mvn_repositories = [ repo for repo, branch in decoder.decode(configuration.args.only.replace(" ", "").replace("'", '"')).items() ]
+        
+        print("Error decoding --only parameter (double check quotes!)")
+        print(e)
+        exit(1)
     
     # --git-except
     if configuration.args.git_except:
