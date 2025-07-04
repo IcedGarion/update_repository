@@ -208,7 +208,7 @@ def git_step():
         
         # Git pull abs_repo_path
         print(configuration.colors["yellow"] + "-"*int(width-(len(repo_dir)+len(str(git_count))+len(str(git_total))+7)) + " " + repo_dir + " ({} / {})".format(git_count, git_total) + configuration.colors["end"])
-        print("> cd {}, git stash && git checkout {} && git pull --rebase origin {}".format(abs_repo_path, branch, branch))
+        print("> cd {}, git fetch && git stash && git checkout {} && git pull --rebase origin {}".format(abs_repo_path, branch, branch))
         print()
         
         # EXEC COMMAND
@@ -216,7 +216,7 @@ def git_step():
         
         # error git pull
         if(exit_code != 0):
-            configuration.error_report.append("{}: git step error ({})".format(repo_dir, "cd " + abs_repo_path + " && git stash && git checkout " + branch + " && git pull --rebase origin " + branch))
+            configuration.error_report.append("{}: git step error ({})".format(repo_dir, "cd " + abs_repo_path + " , git fetch && git stash && git checkout " + branch + " && git pull --rebase origin " + branch))
         
         # execution time calc
         git_end = time.time()
@@ -305,7 +305,7 @@ def parse_args():
     parser = argparse.ArgumentParser(prog='Repository update', description='Update all your local repositories by git pulling the specified branch and recompiling the project with maven install')
     parser.add_argument('-t', '--test', action="store_true", help="Run maven tests during mvn install (default false)")
     parser.add_argument('-g', '--git-step-only', action="store_true", help="Only execute git pull step (on repositories in config or in --git-only arg)")
-    parser.add_argument('-m', '--mvn-step-only', action="store_true", help="Only execute mvn install step (on repositories in config or in --mvn arg)")
+    parser.add_argument('-m', '--mvn-step-only', action="store_true", help="Only execute mvn install step (on repositories in config or in --mvn-only arg)")
     parser.add_argument('-s', '--silent', action="store_true", help="Suppress output print (default false)")
     parser.add_argument('--git-only', type=str, metavar="<repository:branch ordered dict> (ex: \"{'resevo-parent':'develop','resevo-apigw-service':'develop'}\")", help="List repositories to git pull only (overrides configuration file)")
     parser.add_argument('--mvn-only', type=str, metavar="<repository list> (ex: \"resevo-parent,resevo-apigw-service\")", help="List repositories to mvn install only (overrides configuration file)")
@@ -313,7 +313,7 @@ def parse_args():
     parser.add_argument('--git-except', type=str, metavar="<repository list> (ex: \"resevo-parent,resevo-apigw-service\")", help="List repositories to exclude from git pull step (overrides configuration file)")
     parser.add_argument('--mvn-except', type=str, metavar="<repository list> (ex: \"resevo-parent,resevo-apigw-service\")", help="List repositories to exclude from mvn install step (overrides configuration file)")
     parser.add_argument('--all-except', type=str, metavar="<repository list> (ex: \"resevo-parent,resevo-apigw-service\")", help="List repositories to exclude from git pull + mvn install (overrides configuration file)")    
-    parser.add_argument('--force-maven', action="store_true", help="Run maven install step even if git project is already up-to-date (default false)")
+    parser.add_argument('-f', '--force-mvn', action="store_true", help="Run maven install step even if git project is already up-to-date (default false)")
     parser.add_argument('--config-file', type=str, help="Specify a custom config file. If none, then defaults to 'config.py'")
     
     configuration.args = parser.parse_args()
