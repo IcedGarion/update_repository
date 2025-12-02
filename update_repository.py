@@ -42,6 +42,8 @@ class Configuration:
         self.config_repositories = config.repositories
         self.config_mvn_exclusions = config.mvn_exclusions if hasattr(config, "mvn_exclusions") else []
         self.config_blacklist = config.blacklist if hasattr(config, "blacklist") else []
+        self.config_mvn_settings = config.mvn_settings if hasattr(config, "mvn_settings") else ""
+        self.config_mvn_compiler = config.mvn_compiler if hasattr(config, "mvn_compiler") else ""
 
         # calc default repositories to scan, git / mvn and exclude blacklisted, based on config file
         self.git_repositories = OrderedDict({ repo: branch for repo, branch in config.repositories.items() if repo not in self.config_blacklist })
@@ -153,15 +155,20 @@ def mvn_command(abs_repo_path, repo_dir):
     # Open log file
     with open(os.path.join(configuration.log_dir, "mvn-{}.log".format(repo_dir)), 'wb') as output_file:
         
-        # Exec command
-        if configuration.args.test:
-            cmd = subprocess.Popen("cd " + abs_repo_path + " && mvn clean install", \
-                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
-            killer.child_processes.append(cmd)
-        else:
-            cmd = subprocess.Popen("cd " + abs_repo_path + " && mvn clean install -DskipTests", \
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
-            killer.child_processes.append(cmd)
+        # Base exec command
+        mvn_cmd = "cd " + abs_repo_path + " && mvn clean install"
+        
+        # optional args
+        if not configuration.args.test:
+            mvn_cmd += " -DskipTests"
+        if configuration.config_mvn_settings:
+            mvn_cmd += ' --settings "' + configuration.config_mvn_settings + '"'
+        if configuration.config_mvn_compiler:
+            mvn_cmd += ' -Dmaven.compiler.fork=true -Dmaven.compiler.executable="' + configuration.config_mvn_compiler + '"'
+
+        # exec
+        cmd = subprocess.Popen(mvn_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+        killer.child_processes.append(cmd)
 
         # print on console and file
         for line in cmd.stdout:
@@ -314,7 +321,7 @@ def parse_args():
     parser.add_argument('--mvn-except', type=str, metavar="<repository list> (ex: \"resevo-parent,resevo-apigw-service\")", help="List repositories to exclude from mvn install step (overrides configuration file)")
     parser.add_argument('--all-except', type=str, metavar="<repository list> (ex: \"resevo-parent,resevo-apigw-service\")", help="List repositories to exclude from git pull + mvn install (overrides configuration file)")    
     parser.add_argument('-f', '--force-mvn', action="store_true", help="Run maven install step even if git project is already up-to-date (default false)")
-    parser.add_argument('--config-file', type=str, help="Specify a custom config file. If none, then defaults to 'config.py'")
+    parser.add_argument('--config-file', type=str, help="Specify a custom config file. If none, then defaults to 'config.py'. Read the template file to know what attributes are accepted")
     
     configuration.args = parser.parse_args()
     
