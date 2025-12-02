@@ -7,12 +7,12 @@ repo_main_dir = "C:\\Users\\iTuna\\Desktop\\ADESSO\\GNV\\RESEVO\\resevo-sb34"
 repositories = OrderedDict({ \
 "resevo-parent": "develop", "resevo-parent-lib": "develop", "resevo-domain-lib": "develop", "resevo-core-lib": "develop", "resevo-context-lib": "develop", \
 "resevo-messaging-lib": "develop", "resevo-saga-lib": "develop", "resevo-rule-lib": "develop", "resevo-testsupport-lib": "develop", \
-"resevo-apigw-service": "develop", "resevo-booking-service-sb34": "develop", "resevo-db-manager": "master", "resevo-discovery-service": "develop", \
+"resevo-apigw-service": "develop", "resevo-booking-service-sb34": "develop", "resevo-discovery-service": "develop", \
 "resevo-freightbooking-service-sb34": "develop", "resevo-freightcompany-service-sb34": "develop", "resevo-freightpricing-service-sb34": "develop", \
-"resevo-integration-service": "develop", "resevo-notification-service": "develop", "resevo-payment-service": "develop", \
+"resevo-integration-service": "develop", "resevo-notification-service": "develop", \
 "resevo-piletfeed-service": "develop", "resevo-port-service": "develop","resevo-pricing-service": "develop", "resevo-reportprint-service": "develop", \
-"resevo-sbadmin-service": "develop", "resevo-ship-service": "develop", "resevo-testrunnere2e-app": "feature/cucumber", "resevo-user-service-sb34": "develop", \
-"resevo-voy-service": "develop", "resevo-config-service": "master", "resevo-cart-lib": "develop", "resevo-policies-lib": "develop", \
+"resevo-sbadmin-service": "develop", "resevo-ship-service": "develop", "resevo-user-service-sb34": "develop", \
+"resevo-voy-service": "develop", "resevo-cart-lib": "develop", "resevo-policies-lib": "develop", \
 "reservation-cgi": "master","resevo-api-collections": "main", "resevo-cast": "develop","resevo-devops": "master", "resevo-eid-service": "develop", \
 "resevo-regulatory-service": "develop"
 })

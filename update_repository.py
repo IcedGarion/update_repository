@@ -264,7 +264,7 @@ def mvn_step():
         
         # Log
         print(configuration.colors["yellow"] + "-"*int(width-(len(repo_dir)+len(str(mvn_count))+len(str(mvn_total))+7)) + " " + repo_dir + " ({} / {})".format(mvn_count, mvn_total) + configuration.colors["end"])
-        print("> cd {}, {}".format(abs_repo_path, mvn_cmd))
+        print("> {}".format(mvn_cmd))
         print()
 
         # EXEC COMMAND
