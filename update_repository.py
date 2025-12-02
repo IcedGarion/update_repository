@@ -145,7 +145,7 @@ def mvn_command(abs_repo_path, repo_dir):
     output = ""    
     
     # Skip mvn step if git already up-to-date
-    if "Already up-to-date" in configuration.git_output[repo_dir] and not configuration.args.force_maven:
+    if "Already up-to-date" in configuration.git_output[repo_dir] and not configuration.args.force_mvn:
         print("Skipped Mvn build (project already up-to-date)")
         configuration.mvn_output[repo_dir] = "Skipped Mvn build (project already up-to-date)"
         return 0    
