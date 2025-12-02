@@ -6,18 +6,13 @@ repo_main_dir = "C:\\Users\\iTuna\\Desktop\\ADESSO\\GNV\\RESEVO\\repository"
 # Repositories and their branches to git-pull + to mvn install
 repositories = OrderedDict({ \
 "resevo-parent": "develop", "resevo-domain-lib": "develop", "resevo-core-lib": "develop", "resevo-context-lib": "develop", "resevo-messaging-lib": "develop", \
-"resevo-saga-lib": "develop", "resevo-rule-lib": "develop", "resevo-testsupport-lib": "develop", "resevo-apigw-service": "develop", "resevo-booking-service": "develop", \
-"resevo-db-manager": "master", "resevo-discovery-service": "develop", \
-"resevo-integration-service": "develop", "resevo-notification-service": "develop", "resevo-payment-service": "develop", \
-"resevo-piletfeed-service": "develop", "resevo-pricing-service": "develop", \
-"resevo-sbadmin-service": "develop", "resevo-testrunnere2e-app": "feature/cucumber", \
-"resevo-config-service": "master", "resevo-cart-lib": "develop", "resevo-policies-lib": "develop", \
-"reservation-cgi": "master","resevo-api-collections": "main", "resevo-cast": "develop","resevo-devops": "master", "resevo-eid-service": "develop", \
-"resevo-regulatory-service": "develop"
+"resevo-saga-lib": "develop", "resevo-rule-lib": "develop", "resevo-testsupport-lib": "develop", "resevo-cart-lib": "develop", "resevo-policies-lib": "develop", \
+"resevo-db-manager": "master", "resevo-testrunnere2e-app": "feature/cucumber", "resevo-config-service": "master", \
+"reservation-cgi": "master", "resevo-api-collections": "main", "resevo-devops": "master"
 })
 
 # Repositories to not mvn-install (not maven projects)
-mvn_exclusions = [ "reservation-cgi", "resevo-api-collections", "resevo-cast", "resevo-devops", "resevo-eid-service", "resevo-project"]
+mvn_exclusions = [ "reservation-cgi", "resevo-api-collections", "resevo-devops", "resevo-project"]
 
 # Repositories you want to manually exclude
 blacklist = []

@@ -7,23 +7,19 @@ repo_main_dir = "C:\\Users\\iTuna\\Desktop\\ADESSO\\GNV\\RESEVO\\resevo-sb34"
 hotfix_branch = "hotfix/RESEVO-5.424"
 hotfix_lib_branch = "hotfix/2.130.0"
 repositories = OrderedDict({ \
-"resevo-parent": hotfix_lib_branch, "resevo-parent-lib": hotfix_lib_branch, "resevo-domain-lib": hotfix_lib_branch, "resevo-core-lib": hotfix_lib_branch, \
-"resevo-context-lib": hotfix_lib_branch, "resevo-messaging-lib": hotfix_lib_branch, \
-"resevo-saga-lib": hotfix_lib_branch, "resevo-rule-lib": hotfix_lib_branch, "resevo-testsupport-lib": hotfix_lib_branch, \
-"resevo-apigw-service": hotfix_branch, "resevo-booking-service-sb34": hotfix_branch, \
-"resevo-discovery-service": hotfix_branch, "resevo-freightbooking-service-sb34": hotfix_branch, \
-"resevo-freightcompany-service-sb34": hotfix_branch, "resevo-freightpricing-service-sb34": hotfix_branch, "resevo-integration-service": hotfix_branch, \
-"resevo-notification-service": hotfix_branch, \
-"resevo-piletfeed-service": hotfix_branch, "resevo-port-service": hotfix_branch,"resevo-pricing-service": hotfix_branch, \
-"resevo-reportprint-service": hotfix_branch, "resevo-sbadmin-service": hotfix_branch, "resevo-ship-service": hotfix_branch, \
-"resevo-user-service-sb34": hotfix_branch, \
-"resevo-voy-service": hotfix_branch, "resevo-cart-lib": hotfix_branch, \
-"resevo-policies-lib": hotfix_branch, "reservation-cgi": "master","resevo-api-collections": "main", "resevo-cast": hotfix_branch, \
-"resevo-devops": "master", "resevo-eid-service": hotfix_branch, "resevo-regulatory-service": hotfix_branch
+"resevo-parent": hotfix_branch, "resevo-parent-lib": hotfix_lib_branch, "resevo-domain-lib": hotfix_lib_branch, "resevo-core-lib": hotfix_lib_branch, \
+"resevo-context-lib": hotfix_lib_branch, "resevo-messaging-lib": hotfix_lib_branch, "resevo-saga-lib": hotfix_lib_branch, "resevo-rule-lib": hotfix_lib_branch, \
+"resevo-testsupport-lib": hotfix_lib_branch, "resevo-cart-lib": hotfix_lib_branch, "resevo-policies-lib": hotfix_lib_branch, \
+"resevo-apigw-service": hotfix_branch, "resevo-booking-service-sb34": hotfix_branch, "resevo-discovery-service": hotfix_branch, \
+"resevo-freightbooking-service-sb34": hotfix_branch, "resevo-freightcompany-service-sb34": hotfix_branch, "resevo-freightpricing-service-sb34": hotfix_branch, \
+"resevo-integration-service": hotfix_branch, "resevo-notification-service": hotfix_branch, "resevo-port-service": hotfix_branch, \
+"resevo-pricing-service": hotfix_branch, "resevo-reportprint-service": hotfix_branch, "resevo-sbadmin-service": hotfix_branch, "resevo-ship-service": hotfix_branch, \
+"resevo-user-service-sb34": hotfix_branch, "resevo-voy-service": hotfix_branch, "resevo-payment-service-sb34": hotfix_branch, "resevo-regulatory-service": hotfix_branch, \
+"resevo-api-collections": "main", "resevo-devops": "master", "resevo-eid-service": "develop"
 })
 
 # Repositories to not mvn-install (not maven projects)
-mvn_exclusions = [ "reservation-cgi", "resevo-api-collections", "resevo-cast", "resevo-devops", "resevo-eid-service", "resevo-project"]
+mvn_exclusions = [ "resevo-api-collections", "resevo-devops", "resevo-eid-service", "resevo-project"]
 
 # Repositories you want to manually exclude
 blacklist = []
