@@ -143,7 +143,7 @@ def analyze_mvn_output(repo: str, output: str):
         configuration.mvn_output[repo] = configuration.colors["red"] + "Mvn Build FAILURE" + configuration.colors["end"]
       
 
-def mvn_command(abs_repo_path, repo_dir):
+def mvn_command(abs_repo_path, repo_dir, mvn_cmd):
     output = ""    
     
     # Skip mvn step if git already up-to-date
@@ -154,17 +154,6 @@ def mvn_command(abs_repo_path, repo_dir):
     
     # Open log file
     with open(os.path.join(configuration.log_dir, "mvn-{}.log".format(repo_dir)), 'wb') as output_file:
-        
-        # Base exec command
-        mvn_cmd = "cd " + abs_repo_path + " && mvn clean install"
-        
-        # optional args
-        if not configuration.args.test:
-            mvn_cmd += " -DskipTests"
-        if configuration.config_mvn_settings:
-            mvn_cmd += ' --settings "' + configuration.config_mvn_settings + '"'
-        if configuration.config_mvn_compiler:
-            mvn_cmd += ' -Dmaven.compiler.fork=true -Dmaven.compiler.executable="' + configuration.config_mvn_compiler + '"'
 
         # exec
         cmd = subprocess.Popen(mvn_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
@@ -176,7 +165,7 @@ def mvn_command(abs_repo_path, repo_dir):
             output += line.decode("utf-8")
             
             if not configuration.args.silent:
-                print(line.decode("utf-8").replace("BUILD SUCCESS", configuration.colors["green"] + "BUILD SUCCESS" + configuration.colors["end"]).replace("BUILD FAILURE", configuration.colors["red"] + "BUILD FAILURE" + configuration.colors["end"]), end='')
+                print(line.decode("utf-8"), end='')
             output_file.write(line)
             
         cmd.wait()
@@ -262,17 +251,24 @@ def mvn_step():
             configuration.times["mvn"][repo_dir].update({"end": mvn_end})
             continue
         
+        # Base exec command
+        mvn_cmd = "cd " + abs_repo_path + " && mvn clean install -Dstyle.color=always"
+        
+        # Base exec command + optional args
+        if not configuration.args.test:
+            mvn_cmd += " -DskipTests"
+        if configuration.config_mvn_settings:
+            mvn_cmd += ' --settings "' + configuration.config_mvn_settings + '"'
+        if configuration.config_mvn_compiler:
+            mvn_cmd += ' -Dmaven.compiler.fork=true -Dmaven.compiler.executable="' + configuration.config_mvn_compiler + '"'
+        
+        # Log
         print(configuration.colors["yellow"] + "-"*int(width-(len(repo_dir)+len(str(mvn_count))+len(str(mvn_total))+7)) + " " + repo_dir + " ({} / {})".format(mvn_count, mvn_total) + configuration.colors["end"])
-        
-        if configuration.args.test:
-            print("> cd {}, mvn clean install".format(abs_repo_path))
-            print()
-        else:
-            print("> cd {}, mvn clean install -DskipTests".format(abs_repo_path))
-            print()
-        
+        print("> cd {}, {}".format(abs_repo_path, mvn_cmd))
+        print()
+
         # EXEC COMMAND
-        exit_code = mvn_command(abs_repo_path, repo_dir)
+        exit_code = mvn_command(abs_repo_path, repo_dir, mvn_cmd)
         
         # error mvn install
         if(exit_code != 0):
