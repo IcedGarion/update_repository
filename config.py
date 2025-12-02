@@ -21,3 +21,7 @@ mvn_exclusions = [ "reservation-cgi", "resevo-api-collections", "resevo-cast", "
 
 # Repositories you want to manually exclude
 blacklist = []
+
+# maven custom settings file
+mvn_settings = "C:\\Users\\iTuna\\.m2\\settings.xml"
+mvn_compiler = "C:\\Users\\iTuna\\.jdks\\jdk-17.0.2\\bin\\javac.exe"
